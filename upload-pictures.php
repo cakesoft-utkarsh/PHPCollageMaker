@@ -38,27 +38,23 @@ function RotateImage(Imagick $image)
 <script type="text/javascript">
     function SubmitCropForm()
     {
-        <?php if ( isset($_REQUEST['AspectRatio']) && $_REQUEST['AspectRatio'] ) { ?>
-            if ( ( $('#x').val() == '' ) || ( $('#x').val() == null ) )
-            {
-                alert('Plese make a selection in the picture first.');
-                return false;
-            }
-        <?php } ?>
+        if ( ( $('#x').val() == '' ) || ( $('#x').val() == null ) )
+        {
+            alert('Plese make a selection in the picture first.');
+            return false;
+        }
         var formData = new FormData($('#frmCrop')[0]);
-        doAjaxPostWithFile('upload-pictures.php?id=<?php echo $_REQUEST['id']; ?>&AspectRatio=<?php echo $_REQUEST['AspectRatio']; ?>&FrmId=<?php echo $_REQUEST['FrmId']; ?>&ImgId=<?php echo $_REQUEST['ImgId']; ?>&ImgSize=<?php echo $_REQUEST['ImgSize']; ?>', 'divUploadImage', '<div class="text-center"><img src="images/ajax-loading.gif" alt="Loading" /></div>', '<div class="text-center">Internet error</div>', null, formData);
+        doAjaxPostWithFile('upload-pictures.php?id=<?php echo $_REQUEST['id']; ?>&AspectRatio=<?php echo $_REQUEST['AspectRatio']; ?>', 'divUploadImage', '<div class="text-center"><img src="images/ajax-loading.gif" alt="Loading" /></div>', '<div class="text-center">Internet error</div>', null, formData);
         $('#mdlUploadPicture').modal('hide');
         return true;
     }
     function ValidateCropForm()
     {
         $('#mdlUploadPicture #btnSavePhoto').prop('disabled', true).css({'background': '#CCC', 'border': '1px solid #CCC'});
-        <?php if ( isset($_REQUEST['AspectRatio']) && $_REQUEST['AspectRatio'] ) { ?>
-            if ( ( $('#x').val() == '' ) || ( $('#x').val() == null ) )
-            {
-                return false;
-            }
-        <?php } ?>
+        if ( ( $('#x').val() == '' ) || ( $('#x').val() == null ) )
+        {
+            return false;
+        }
         $('#mdlUploadPicture #btnSavePhoto').prop('disabled', false).css({'background': '#008000', 'border': '1px solid #008000'});
     }
     function SubmitUploadForm(imageName)
@@ -80,7 +76,7 @@ function RotateImage(Imagick $image)
             return false;
         }
         var formData = new FormData($('#frmUpload')[0]);
-        doAjaxPostWithFile('upload-pictures.php?id=<?php echo $_REQUEST['id']; ?>&AspectRatio=<?php echo $_REQUEST['AspectRatio']; ?>&FrmId=<?php echo $_REQUEST['FrmId']; ?>&ImgId=<?php echo $_REQUEST['ImgId']; ?>&ImgSize=<?php echo $_REQUEST['ImgSize']; ?>', 'divUploadImage', '<div class="text-center"><img src="images/ajax-loading.gif" alt="Loading" /></div>', '<div class="text-center">Internet error</div>', null, formData);
+        doAjaxPostWithFile('upload-pictures.php?id=<?php echo $_REQUEST['id']; ?>&AspectRatio=<?php echo $_REQUEST['AspectRatio']; ?>', 'divUploadImage', '<div class="text-center"><img src="images/ajax-loading.gif" alt="Loading" /></div>', '<div class="text-center">Internet error</div>', null, formData);
     }
 </script>
 <div class="clear"><img src="images/spacer.gif" alt="" /></div>
@@ -179,8 +175,8 @@ else
                     <input type="hidden" name="scaleDenominator" id="scaleDenominator" value="<?php echo $scaleDenominator;?>" />
                     <input type="hidden" name="x" id="x" value="" />
                     <input type="hidden" name="y" id="y" value="" />
-                    <input type="hidden" name="w" id="w" value="<?php echo ( isset($_REQUEST['AspectRatio']) && $_REQUEST['AspectRatio'] ) ? '' : $pictureWidth; ?>" />
-                    <input type="hidden" name="h" id="h" value="<?php echo ( isset($_REQUEST['AspectRatio']) && $_REQUEST['AspectRatio'] ) ? '' : $pictureHeight; ?>" />
+                    <input type="hidden" name="w" id="w" value="" />
+                    <input type="hidden" name="h" id="h" value="" />
                     <?php echo $imgTag;?>
                 </form>
             </div>
@@ -195,17 +191,10 @@ else
                 }
                 function boxUnselected()
                 {
-                    <?php if ( isset($_REQUEST['AspectRatio']) && $_REQUEST['AspectRatio'] ) { ?>
-                        $('#x').val('');
-                        $('#y').val('');
-                        $('#w').val('');
-                        $('#h').val('');
-                    <?php } else { ?>
-                        $('#x').val('');
-                        $('#y').val('');
-                        $('#w').val('<?php echo $pictureWidth; ?>');
-                        $('#h').val('<?php echo $pictureHeight; ?>');
-                    <?php } ?>
+                    $('#x').val('');
+                    $('#y').val('');
+                    $('#w').val('');
+                    $('#h').val('');
                     ValidateCropForm();
                 }
                 $(document).ready(function(){
@@ -213,7 +202,7 @@ else
                     ValidateCropForm();
                     var jcrop_api;
                     $('#target').Jcrop({
-                        <?php if ( isset($_REQUEST['AspectRatio']) && $_REQUEST['AspectRatio'] ) { echo 'aspectRatio: ' . $_REQUEST['AspectRatio'] . ','; } ?>
+                        aspectRatio: <?php echo ( isset($_REQUEST['AspectRatio']) && $_REQUEST['AspectRatio'] ) ? $_REQUEST['AspectRatio'] : '1/1'; ?>,
                         bgOpacity: 0.25,
                         onChange: boxSelected,
                         onSelect: boxSelected,
@@ -251,22 +240,12 @@ else
                     $tempPicture = imagecreatefrompng($tempPictureFileName);
                     break;
             }
-            if ( $_REQUEST['x'] == '' && $_REQUEST['y'] == '' )
-            {
-                $x = 0;
-                $y = 0;
-                $w = intval($_REQUEST['w']);
-                $h = intval($_REQUEST['h']);
-            }
-            else
-            {
-                $scaleNumerator = intval($_REQUEST['scaleNumerator']);
-                $scaleDenominator = intval($_REQUEST['scaleDenominator']);
-                $x = intval($_REQUEST['x']) * $scaleNumerator / $scaleDenominator;
-                $y = intval($_REQUEST['y']) * $scaleNumerator / $scaleDenominator;
-                $w = intval($_REQUEST['w']) * $scaleNumerator / $scaleDenominator;
-                $h = intval($_REQUEST['h']) * $scaleNumerator / $scaleDenominator;
-            }
+            $scaleNumerator = intval($_REQUEST['scaleNumerator']);
+            $scaleDenominator = intval($_REQUEST['scaleDenominator']);
+            $x = intval($_REQUEST['x']) * $scaleNumerator / $scaleDenominator;
+            $y = intval($_REQUEST['y']) * $scaleNumerator / $scaleDenominator;
+            $w = intval($_REQUEST['w']) * $scaleNumerator / $scaleDenominator;
+            $h = intval($_REQUEST['h']) * $scaleNumerator / $scaleDenominator;
             do
             {
                 $processedPictureRandomText = GenerateRandomString(16);
@@ -285,11 +264,6 @@ else
             $ratio = $w / $h;
             $wPicture = 400;
             $hPicture = 400;
-            if ( isset($_REQUEST['ImgSize']) && $_REQUEST['ImgSize'] )
-            {
-                $wPicture = 512;
-                $hPicture = 512;
-            }
             $wPictureBig = 1280;
             $hPictureBig = 1280;
             if ( $h > $w )
@@ -312,27 +286,8 @@ else
             echo '
                 <script type="text/javascript">
                     $(document).ready(function(){';
-                        if ( isset($_REQUEST['FrmId']) && trim($_REQUEST['FrmId']) )
-                        {
-                            echo 'var ele1 = $(\'#' . $_REQUEST['FrmId'] . '\').find(\'#' . $_REQUEST['ImgId'] . 'picture-img\');
-                            ele1.attr(\'src\', \'temp-pic/' . $processedPictureRandomText . '.jpg\');
-                            var ele2 = $(\'#' . $_REQUEST['FrmId'] . '\').find(\'#' . $_REQUEST['ImgId'] . 'picture-input-' . $_REQUEST['id'] . '\');
-                            ele2.val(\'' . $processedPictureRandomText . '\');
-                            var ele1 = $(\'#' . $_REQUEST['FrmId'] . '\').find(\'#IsMediaAdded\').val(1).trigger(\'change\');';
-                        }
-                        else if ( isset($_REQUEST['id']) && trim($_REQUEST['id']) )
-                        {
-                            echo '$(\'#media-input-' . $_REQUEST['id'] . ' #' . $_REQUEST['ImgId'] . 'picture-img\').attr(\'src\', \'temp-pic/' . $processedPictureRandomText . '.jpg\');';
-                            echo '$(\'#media-input-' . $_REQUEST['id'] . ' #' . $_REQUEST['ImgId'] . 'picture-input-' . $_REQUEST['id'] . '\').val(\'' . $processedPictureRandomText . '\');';
-                            echo '$(\'#media-input-' . $_REQUEST['id'] . ' #IsMediaAdded\').val(1).trigger(\'change\');';
-                        }
-                        else
-                        {
-                            echo 'document.getElementById("' . $_REQUEST['ImgId'] . 'picture-img").src="' . 'temp-pic/' . $processedPictureRandomText . '.jpg' . '";
-                            document.getElementById("' . $_REQUEST['ImgId'] . 'picture-input-'. $_REQUEST['id'] . '").value="' . $processedPictureRandomText . '";
-                            document.getElementById("IsMediaAdded").value=1;
-                            document.getElementById("IsMediaAdded").onchange();';
-                        }
+                        echo '$(\'#media-input-' . $_REQUEST['id'] . ' #picture-img\').attr(\'src\', \'temp-pic/' . $processedPictureRandomText . '.jpg\');';
+                        echo '$(\'#media-input-' . $_REQUEST['id'] . ' #picture-input-' . $_REQUEST['id'] . '\').val(\'' . $processedPictureRandomText . '\');';
             echo '  });
                 </script>'; 
             break;

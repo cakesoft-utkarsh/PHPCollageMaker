@@ -4,6 +4,7 @@ try
     // Get dimensions for specified images
     $isGridorCollag = $_REQUEST['isGridorCollag'];
     $user = $_REQUEST['id'];
+    $collagAndCardOpt = $_REQUEST['collagAndCardOpt'];
     if ( $user == 0 || $user == '')
     {
         throw new Exception('User not found');
@@ -30,34 +31,39 @@ try
         
         list($width_x, $height_x) = getimagesize($filename_x);
         list($width_y, $height_y) = getimagesize($filename_y);
-        
+        $distWidth = $width_x;
+        $distHeight = $height_x * 2;
+        $collageWidth = 0;
+        $collageHeight = $height_x + 1;
+        if ( $collagAndCardOpt != 'horizontal' )
+        {
+            $distWidth = $width_x * 2;
+            $distHeight = $distHeight / 2;
+            $collageWidth = $width_x + 1;
+            $collageHeight = 0;
+        }
         // Create new image with desired dimensions
-        
-        $image = imagecreatetruecolor($width_x, $height_x + $height_x);
-        $imagey = imagecreatefromjpeg($filename_y);
-        $imagex = imagecreatefromjpeg($filename_x);
-        
+        $image = imagecreatetruecolor($distWidth, $distHeight);
+
         // Load images and then copy to destination image
-        
-        $image_x = imagecreatefromjpeg($filename_x);
-        $image_y = imagecreatefromjpeg($filename_y);
-        
+        $imagex = imagecreatefromjpeg($filename_x);
+        $imagey = imagecreatefromjpeg($filename_y);
+
+        // Load image 1 to destination image
         imagecopyresampled($image, $imagex, 0, 0, 0, 0, $width_x, $height_x, $width_x, $height_x);
-        @imagedestroy($imagex);
-        imagecopyresampled($image, $imagey, 0, $height_x + 1, 0, 0, $width_x, $height_x, $width_x, $height_x);
-        @imagedestroy($imagey);
+        
+        // Load image 2 to destination image
+        imagecopyresampled($image, $imagey, $collageWidth, $collageHeight, 0, 0, $width_x, $height_x, $width_x, $height_x);
         
         // Save the resulting image to disk (as JPEG)
-        
         imagejpeg($image, $filename_result);
-        
+
         // Clean up
-        
-        imagedestroy($image);
-        imagedestroy($image_x);
-        imagedestroy($image_y);
+        @imagedestroy($imagex);
+        @imagedestroy($imagey);
+        @imagedestroy($image);
     }
-    else 
+    else if ( $isGridorCollag == 'card' )
     {
         $cardImage = $_REQUEST['cardImage'];
         if ( $cardImage == '' )
@@ -65,36 +71,82 @@ try
             throw new Exception('cardimage id not found');
         }
         $filename_x = 'temp-pic/'. $cardImage . '.jpg';
-        $filename_y = 'images/sampleicard.jpeg';
-
+        if ( $collagAndCardOpt == 'temp1' )
+        {
+            $filename_y = 'images/driving-licence-1.jpeg';
+            $dstX = 185; $dstY = 53; $dstW = 85; $dstH = 94;
+        } else {
+            $filename_y = 'images/driving-licence-2.png';
+            $dstX = 28; $dstY = 100; $dstW = 170; $dstH = 220;
+        }
         if ( $filename_x == '' || $filename_y == '' )
         {
             throw new Exception('Images not found');
         }
-
+        
         list($width_x, $height_x) = getimagesize($filename_x);
         list($width_y, $height_y) = getimagesize($filename_y);
 
         $image = imagecreatetruecolor($width_y, $height_y);
         $imagex = imagecreatefromjpeg($filename_x);
-        $imagey = imagecreatefromjpeg($filename_y);
-
+        if ( $collagAndCardOpt == 'temp1' )
+        {
+            $imagey = imagecreatefromjpeg($filename_y);
+        } else {
+            $imagey = imagecreatefrompng($filename_y);
+        }
 
         $fileName = GenerateRandomString(16);
         $filename_result = 'photos/' . $user . '/' . $fileName . 'card.jpg';
 
         imagecopyresampled($image, $imagey, 0, 0, 0, 0, $width_y, $height_y, $width_y, $height_y);
-        @imagedestroy($imagey);
-        imagecopyresampled($image, $imagex, 185, 53, 0, 0, 85, 94, $width_x, $height_x);
-        @imagedestroy($imagex);
+        imagecopyresampled($image, $imagex, $dstX, $dstY, 0, 0, $dstW, $dstH, $width_x, $height_x);
+        imagejpeg($image, $filename_result);
         
+        @imagedestroy($imagex);
+        @imagedestroy($imagey);
+        @imagedestroy($image);        
+    }
+    else
+    {
+        $cardImage = $_REQUEST['cardImage'];
+        if ( $cardImage == '' )
+        {
+            throw new Exception('calendar image id not found');
+        }
+        $filename_x = 'temp-pic/'. $cardImage . '.jpg';
+        if ( $collagAndCardOpt == 'temp1' )
+        {
+            $filename_y = 'images/calendar-1.png';
+            $dstX = 80; $dstY = 90; $dstW = 390; $dstH = 275;
+        } else {
+            $filename_y = 'images/calendar-2.png';
+            $dstX = 60; $dstY = 14; $dstW = 352; $dstH = 420;
+        }
+        if ( $filename_x == '' || $filename_y == '' )
+        {
+            throw new Exception('Images not found');
+        }
+        list($width_x, $height_x) = getimagesize($filename_x);
+        list($width_y, $height_y) = getimagesize($filename_y);
+
+        $image = imagecreatetruecolor($width_y, $height_y);
+        $imagex = imagecreatefromjpeg($filename_x);
+        $imagey = imagecreatefrompng($filename_y);
+
+        $fileName = GenerateRandomString(16);
+        $filename_result = 'photos/' . $user . '/' . $fileName . 'calendar.jpg';
+        $fileName = GenerateRandomString(16);
+        $filename_result = 'photos/' . $user . '/' . $fileName . 'calendar.jpg';
+
+        imagecopyresampled($image, $imagey, 0, 0, 0, 0, $width_y, $height_y, $width_y, $height_y);
+        imagecopyresampled($image, $imagex, $dstX, $dstY, 0, 0, $dstW, $dstH, $width_x, $height_x);
         imagejpeg($image, $filename_result);
 
-        // Clean up
-        imagedestroy($image);
-        imagedestroy($imagex);
+        @imagedestroy($imagey);
+        @imagedestroy($imagex);
+        @imagedestroy($image);
     }
-
 }
 catch(Exception $e)
 {

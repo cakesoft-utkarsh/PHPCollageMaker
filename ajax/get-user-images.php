@@ -8,7 +8,6 @@ try
         throw new Exception('User not found');
     }
     $images = scandir('../photos/' . $userId);
-    $ignore = array(".", "..");
     $i = 0;
     if ($images) {
         foreach($images as $img) {
